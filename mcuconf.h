@@ -58,6 +58,8 @@
 #define STM32_I2C1SW                        STM32_I2C1SW_SYSCLK
 #define STM32_TIM1SW                        STM32_TIM1SW_PCLK2
 #define STM32_RTCSEL                        STM32_RTCSEL_NOCLOCK
+#define STM32_USB_CLOCK_REQUIRED            TRUE
+#define STM32_USBPRE                        STM32_USBPRE_DIV1P5
 
 /*
  * ADC driver system settings.
@@ -191,6 +193,14 @@
 #define STM32_UART_USART2_DMA_PRIORITY      0
 #define STM32_UART_USART3_DMA_PRIORITY      0
 #define STM32_UART_DMA_ERROR_HOOK(uartp)    osalSysHalt("DMA failure")
+
+/*
+ * USB driver system settings.
+ */
+#define STM32_USB_USE_USB1                  TRUE
+#define STM32_USB_LOW_POWER_ON_SUSPEND      FALSE
+#define STM32_USB_USB1_HP_IRQ_PRIORITY      13
+#define STM32_USB_USB1_LP_IRQ_PRIORITY      14
 
 /*
  * WDG driver system settings.

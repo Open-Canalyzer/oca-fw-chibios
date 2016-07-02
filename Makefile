@@ -109,6 +109,7 @@ CSRC = $(STARTUPSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        src/main.c \
+       src/usbcfg.c \
        src/board.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global

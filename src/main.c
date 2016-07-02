@@ -16,6 +16,14 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "usbcfg.h"
+
+/*
+ * DP resistor control is not possible on the STM32F3-Discovery, using stubs
+ * for the connection macros.
+ */
+#define usb_lld_connect_bus(usbp)
+#define usb_lld_disconnect_bus(usbp)
 
 /*
  * Green LED blinker thread, times are in milliseconds.
@@ -24,12 +32,15 @@ static THD_WORKING_AREA(waThread1, 128);
 static THD_FUNCTION(Thread1, arg) {
 
   (void)arg;
+  systime_t time;
   chRegSetThreadName("blinker");
   while (true) {
+    time = serusbcfg.usbp->state == USB_ACTIVE ? 100 : 500;
+
     palClearPad(GPIOB, 2);
-    chThdSleepMilliseconds(500);
+    chThdSleepMilliseconds(time);
     palSetPad(GPIOB, 2);
-    chThdSleepMilliseconds(500);
+    chThdSleepMilliseconds(time);
   }
 }
 
@@ -47,6 +58,22 @@ int main(void) {
    */
   halInit();
   chSysInit();
+
+  /*
+   * Initializes a serial-over-USB CDC driver.
+   */
+  sduObjectInit(&SDU1);
+  sduStart(&SDU1, &serusbcfg);
+
+  /*
+   * Activates the USB driver and then the USB bus pull-up on D+.
+   * Note, a delay is inserted in order to not have to disconnect the cable
+   * after a reset.
+   */
+  usbDisconnectBus(serusbcfg.usbp);
+  chThdSleepMilliseconds(1500);
+  usbStart(serusbcfg.usbp, &usbcfg);
+  usbConnectBus(serusbcfg.usbp);
 
   /*
    * Creates the blinker thread.
