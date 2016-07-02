@@ -10,10 +10,8 @@ if [ ! -f "${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}" ]; then
 	wget ${GCC_ARM_EMBEDDED_TOOLCHAIN_URL}
 fi
 
-if [ ! -d "${GCC_ARM_EMBEDDED_TOOLCHAIN}" ]; then
-	echo "=== Extracting ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}"
-	tar -xf ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}
-fi
+echo "=== Extracting ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}"
+tar -xf ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}
 
 export PATH="${PWD}/${GCC_ARM_EMBEDDED_TOOLCHAIN}/bin:${PATH}"
 arm-none-eabi-gcc --version
