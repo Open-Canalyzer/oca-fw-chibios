@@ -465,8 +465,8 @@
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D4) |       \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D10) |      \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN7) |         \
-                                     PIN_PUPDR_PULLUP(GPIOB_CAN_RX) |      \
-                                     PIN_PUPDR_PULLUP(GPIOB_CAN_TX) |      \
+                                     PIN_PUPDR_FLOATING(GPIOB_CAN_RX) |      \
+                                     PIN_PUPDR_FLOATING(GPIOB_CAN_TX) |      \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D6) |       \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN11) |        \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN12) |        \
