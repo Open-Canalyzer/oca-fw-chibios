@@ -1,3 +1,6 @@
 sudo: false
 language: c
 script: ./.travis.sh
+cache:
+  directories:
+    gcc-arm-none-eabi-5_4-2016q2
