@@ -7,7 +7,7 @@ GCC_ARM_EMBEDDED_TOOLCHAIN_URL="https://launchpad.net/gcc-arm-embedded/5.0/5-201
 
 if [ ! -f "${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}" ]; then
 	echo "=== Downloading ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}"
-	curl --retry 10 --retry-max-time 120 -L ${GCC_ARM_EMBEDDED_TOOLCHAIN_URL} -O ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}
+	wget ${GCC_ARM_EMBEDDED_TOOLCHAIN_URL}
 fi
 
 if [ ! -d "${GCC_ARM_EMBEDDED_TOOLCHAIN}" ]; then
