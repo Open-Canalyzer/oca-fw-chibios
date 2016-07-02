@@ -1,5 +1,7 @@
 # oca-fw-chibios
 
+[![Build Status](https://travis-ci.org/Open-Canalyzer/oca-fw-chibios.svg?branch=master)](https://travis-ci.org/Open-Canalyzer/oca-fw-chibios)
+
 Open-Canalyzer firmware based on ChibiOS RTOS
 
 # OpenOCD & GDB
