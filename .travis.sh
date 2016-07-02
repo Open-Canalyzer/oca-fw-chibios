@@ -10,11 +10,13 @@ if [ ! -d "${GCC_ARM_EMBEDDED_TOOLCHAIN}" ]; then
 		echo "=== Downloading ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}"
 		wget ${GCC_ARM_EMBEDDED_TOOLCHAIN_URL}
 	else
-		echo "=== Toolchain ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR} already downloaded"
+		echo "=== Toolchain ${GCC_ARM_EMBEDDED_TOOLCHAIN} already downloaded"
 	fi
 
 	echo "=== Extracting ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}"
 	tar -xf ${GCC_ARM_EMBEDDED_TOOLCHAIN_TAR}
+else
+	echo "=== Using toolchain ${GCC_ARM_EMBEDDED_TOOLCHAIN}"
 fi
 
 export PATH="${PWD}/${GCC_ARM_EMBEDDED_TOOLCHAIN}/bin:${PATH}"
@@ -22,6 +24,5 @@ export PATH="${PWD}/${GCC_ARM_EMBEDDED_TOOLCHAIN}/bin:${PATH}"
 echo "=== Toolchain info ==="
 arm-none-eabi-gcc --version
 echo "==="
-
 
 make
