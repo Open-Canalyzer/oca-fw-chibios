@@ -22,11 +22,13 @@
 /*
  * 500KBaud, automatic wakeup, automatic recover
  * from abort mode.
+ * See: http://www.chibios.com/forum/viewtopic.php?t=1307
+ * baudrate=Fclk/((1+BRP)*(3+ts1+ts2)) and APB1 runs at 36MHz
+ * 500 000 = (36*10^6)/((1 + 5) * (3 + 5 + 4))
  */
 static const CANConfig cancfg = {
   CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
-  CAN_BTR_SJW(0) | CAN_BTR_TS2(1) |
-  CAN_BTR_TS1(8) | CAN_BTR_BRP(6)
+  CAN_BTR_SJW(0) | CAN_BTR_TS2(4) | CAN_BTR_TS1(5) | CAN_BTR_BRP(5)
 };
 
 
@@ -40,6 +42,18 @@ static const CANConfig cancfg = {
   static const uint8_t buf[] =
       "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n"
       "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n";
+
+static void led_toggle_blue(void)
+{
+    systime_t time = MS2ST(10);
+
+    palClearPad(GPIOB, 2);
+    chThdSleepMilliseconds(time);
+    palSetPad(GPIOB, 2);
+    chThdSleepMilliseconds(time);
+}
+
+
 
 /*
  * Transmitter thread.
@@ -59,11 +73,9 @@ static THD_FUNCTION(can_tx, p) {
 
   while (true) {
     canTransmit(&CAND1, CAN_ANY_MAILBOX, &txmsg, MS2ST(100));
-    chThdSleepMilliseconds(500);
+	led_toggle_blue();
   }
 }
-
-
 
 /*
  * Green LED blinker thread, times are in milliseconds.
@@ -76,11 +88,6 @@ static THD_FUNCTION(Thread1, arg) {
   chRegSetThreadName("blinker");
   while (true) {
     time = serusbcfg.usbp->state == USB_ACTIVE ? 100 : 500;
-
-    palClearPad(GPIOB, 2);
-    chThdSleepMilliseconds(time);
-    palSetPad(GPIOB, 2);
-    chThdSleepMilliseconds(time);
 
     /* Writing in buffer mode.*/
     (void) obqGetEmptyBufferTimeout(&SDU1.obqueue, TIME_INFINITE);
@@ -107,8 +114,8 @@ int main(void) {
   /*
    * Initializes a serial-over-USB CDC driver.
    */
-  sduObjectInit(&SDU1);
-  sduStart(&SDU1, &serusbcfg);
+  //sduObjectInit(&SDU1);
+  //sduStart(&SDU1, &serusbcfg);
 
   canStart(&CAND1, &cancfg);
 
@@ -117,15 +124,15 @@ int main(void) {
    * Note, a delay is inserted in order to not have to disconnect the cable
    * after a reset.
    */
-  usbDisconnectBus(serusbcfg.usbp);
-  chThdSleepMilliseconds(1500);
-  usbStart(serusbcfg.usbp, &usbcfg);
-  usbConnectBus(serusbcfg.usbp);
+  //usbDisconnectBus(serusbcfg.usbp);
+  //chThdSleepMilliseconds(1500);
+  //usbStart(serusbcfg.usbp, &usbcfg);
+  //usbConnectBus(serusbcfg.usbp);
 
   /*
    * Creates the blinker thread.
    */
-  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+  //chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
   chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO + 7, can_tx, NULL);
 
   /*
