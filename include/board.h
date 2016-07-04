@@ -76,10 +76,9 @@
 #define GPIOA_SWCLK                 14U
 #define GPIOA_PIN15                 15U
 
-#define GPIOB_ARD_A3                0U
-#define GPIOB_ADC1_IN11             0U
-#define GPIOB_PIN1                  1U
-#define GPIOB_PIN2                  2U
+#define GPIOB_LED_ERR               0U
+#define GPIOB_LED_STAT              1U
+#define GPIOB_LED_ACT               2U
 #define GPIOB_SWO                   3U
 #define GPIOB_ARD_D3                3U
 #define GPIOB_ARD_D5                4U
@@ -357,8 +356,8 @@
                                      PIN_PUPDR_PULLDOWN(GPIOA_SWCLK) |      \
                                      PIN_PUPDR_PULLUP(GPIOA_PIN15))
 #define VAL_GPIOA_ODR               (PIN_ODR_HIGH(GPIOA_ARD_A0) |           \
-                                     PIN_ODR_HIGH(GPIOA_ARD_A1) |           \
-                                     PIN_ODR_HIGH(GPIOA_ARD_D1) |           \
+                                     PIN_ODR_HIGH(GPIOA_ARD_A2) |           \
+                                     PIN_ODR_HIGH(GPIOA_ARD_D2) |           \
                                      PIN_ODR_HIGH(GPIOA_ARD_D0) |           \
                                      PIN_ODR_HIGH(GPIOA_ARD_A2) |           \
                                      PIN_ODR_LOW(GPIOA_ARD_D13) |           \
@@ -392,9 +391,9 @@
 /*
  * GPIOB setup:
  *
- * PB0  - ARD_A3 ADC1_IN11          (input pullup).
- * PB1  - PIN1                      (input pullup).
- * PB2  - PIN2                      (input pullup).
+ * PB0  - LED_ERR (RED)             (output).
+ * PB1  - LED_STAT (BLUE)           (output).
+ * PB2  - LED_ACT (GREEN)           (output).
  * PB3  - SWO ARD_D3                (alternate 0).
  * PB4  - ARD_D5                    (input pullup).
  * PB5  - ARD_D4                    (input pullup).
@@ -409,25 +408,25 @@
  * PB14 - PIN14                     (input pullup).
  * PB15 - PIN15                     (input pullup).
  */
-#define VAL_GPIOB_MODER             (PIN_MODE_INPUT(GPIOB_ARD_A3) |         \
-                                     PIN_MODE_OUTPUT(GPIOB_PIN1) |           \
-                                     PIN_MODE_OUTPUT(GPIOB_PIN2) |           \
+#define VAL_GPIOB_MODER             (PIN_MODE_OUTPUT(GPIOB_LED_ERR) |       \
+                                     PIN_MODE_OUTPUT(GPIOB_LED_STAT) |      \
+                                     PIN_MODE_OUTPUT(GPIOB_LED_ACT) |       \
                                      PIN_MODE_ALTERNATE(GPIOB_SWO) |        \
                                      PIN_MODE_INPUT(GPIOB_ARD_D5) |         \
                                      PIN_MODE_INPUT(GPIOB_ARD_D4) |         \
                                      PIN_MODE_INPUT(GPIOB_ARD_D10) |        \
                                      PIN_MODE_INPUT(GPIOB_PIN7) |           \
-                                     PIN_MODE_ALTERNATE(GPIOB_CAN_RX) |        \
-                                     PIN_MODE_ALTERNATE(GPIOB_CAN_TX) |        \
+                                     PIN_MODE_ALTERNATE(GPIOB_CAN_RX) |     \
+                                     PIN_MODE_ALTERNATE(GPIOB_CAN_TX) |     \
                                      PIN_MODE_INPUT(GPIOB_ARD_D6) |         \
                                      PIN_MODE_INPUT(GPIOB_PIN11) |          \
                                      PIN_MODE_INPUT(GPIOB_PIN12) |          \
-                                     PIN_MODE_OUTPUT(GPIOB_PIN13) |     \
+                                     PIN_MODE_OUTPUT(GPIOB_PIN13) |         \
                                      PIN_MODE_INPUT(GPIOB_PIN14) |          \
                                      PIN_MODE_INPUT(GPIOB_PIN15))
-#define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_ARD_A3) |     \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN1) |       \
-                                     PIN_OTYPE_PUSHPULL(GPIOB_PIN2) |       \
+#define VAL_GPIOB_OTYPER            (PIN_OTYPE_PUSHPULL(GPIOB_LED_ERR) |    \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_LED_STAT) |   \
+                                     PIN_OTYPE_PUSHPULL(GPIOB_LED_ACT) |    \
                                      PIN_OTYPE_PUSHPULL(GPIOB_SWO) |        \
                                      PIN_OTYPE_PUSHPULL(GPIOB_ARD_D5) |     \
                                      PIN_OTYPE_PUSHPULL(GPIOB_ARD_D4) |     \
@@ -441,9 +440,9 @@
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN13) |  \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN14) |      \
                                      PIN_OTYPE_PUSHPULL(GPIOB_PIN15))
-#define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_HIGH(GPIOB_ARD_A3) |        \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN1) |          \
-                                     PIN_OSPEED_HIGH(GPIOB_PIN2) |          \
+#define VAL_GPIOB_OSPEEDR           (PIN_OSPEED_HIGH(GPIOB_LED_ERR) |       \
+                                     PIN_OSPEED_HIGH(GPIOB_LED_STAT) |      \
+                                     PIN_OSPEED_HIGH(GPIOB_LED_ACT) |       \
                                      PIN_OSPEED_HIGH(GPIOB_SWO) |           \
                                      PIN_OSPEED_HIGH(GPIOB_ARD_D5) |        \
                                      PIN_OSPEED_HIGH(GPIOB_ARD_D4) |        \
@@ -457,9 +456,9 @@
                                      PIN_OSPEED_HIGH(GPIOB_PIN13) |     \
                                      PIN_OSPEED_HIGH(GPIOB_PIN14) |         \
                                      PIN_OSPEED_HIGH(GPIOB_PIN15))
-#define VAL_GPIOB_PUPDR             (PIN_PUPDR_PULLUP(GPIOB_ARD_A3) |       \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN1) |         \
-                                     PIN_PUPDR_PULLUP(GPIOB_PIN2) |         \
+#define VAL_GPIOB_PUPDR             (PIN_PUPDR_PULLUP(GPIOB_LED_ERR) |      \
+                                     PIN_PUPDR_PULLUP(GPIOB_LED_STAT) |     \
+                                     PIN_PUPDR_PULLUP(GPIOB_LED_ACT) |      \
                                      PIN_PUPDR_PULLUP(GPIOB_SWO) |          \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D5) |       \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D4) |       \
@@ -473,9 +472,9 @@
                                      PIN_PUPDR_FLOATING(GPIOB_PIN13) |  \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN14) |        \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN15))
-#define VAL_GPIOB_ODR               (PIN_ODR_HIGH(GPIOB_ARD_A3) |           \
-                                     PIN_ODR_HIGH(GPIOB_PIN1) |             \
-                                     PIN_ODR_HIGH(GPIOB_PIN2) |             \
+#define VAL_GPIOB_ODR               (PIN_ODR_LOW(GPIOB_LED_ERR) |           \
+                                     PIN_ODR_LOW(GPIOB_LED_STAT) |          \
+                                     PIN_ODR_LOW(GPIOB_LED_ACT) |           \
                                      PIN_ODR_HIGH(GPIOB_SWO) |              \
                                      PIN_ODR_HIGH(GPIOB_ARD_D5) |           \
                                      PIN_ODR_HIGH(GPIOB_ARD_D4) |           \
@@ -489,9 +488,9 @@
                                      PIN_ODR_HIGH(GPIOB_PIN13) |        \
                                      PIN_ODR_HIGH(GPIOB_PIN14) |            \
                                      PIN_ODR_HIGH(GPIOB_PIN15))
-#define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_ARD_A3, 0U) |        \
-                                     PIN_AFIO_AF(GPIOB_PIN1, 0U) |          \
-                                     PIN_AFIO_AF(GPIOB_PIN2, 0U) |          \
+#define VAL_GPIOB_AFRL              (PIN_AFIO_AF(GPIOB_LED_ERR, 0U) |       \
+                                     PIN_AFIO_AF(GPIOB_LED_STAT, 0U) |      \
+                                     PIN_AFIO_AF(GPIOB_LED_ACT, 0U) |       \
                                      PIN_AFIO_AF(GPIOB_SWO, 0U) |           \
                                      PIN_AFIO_AF(GPIOB_ARD_D5, 0U) |        \
                                      PIN_AFIO_AF(GPIOB_ARD_D4, 0U) |        \
