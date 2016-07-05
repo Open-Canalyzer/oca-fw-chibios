@@ -47,6 +47,14 @@ static void led_toggle_blue(void)
 {
     systime_t time = MS2ST(10);
 
+    palClearPad(GPIOB, 1);
+    chThdSleepMilliseconds(time);
+    palSetPad(GPIOB, 1);
+    chThdSleepMilliseconds(time);
+}
+
+static void led_toggle_green(systime_t time)
+{
     palClearPad(GPIOB, 2);
     chThdSleepMilliseconds(time);
     palSetPad(GPIOB, 2);
@@ -93,6 +101,8 @@ static THD_FUNCTION(Thread1, arg) {
     (void) obqGetEmptyBufferTimeout(&SDU1.obqueue, TIME_INFINITE);
     memcpy(SDU1.obqueue.ptr, buf, sizeof(buf));
     obqPostFullBuffer(&SDU1.obqueue, sizeof(buf));
+
+    led_toggle_green(500);
   }
 }
 
@@ -114,8 +124,8 @@ int main(void) {
   /*
    * Initializes a serial-over-USB CDC driver.
    */
-  //sduObjectInit(&SDU1);
-  //sduStart(&SDU1, &serusbcfg);
+  sduObjectInit(&SDU1);
+  sduStart(&SDU1, &serusbcfg);
 
   canStart(&CAND1, &cancfg);
 
@@ -124,16 +134,16 @@ int main(void) {
    * Note, a delay is inserted in order to not have to disconnect the cable
    * after a reset.
    */
-  //usbDisconnectBus(serusbcfg.usbp);
-  //chThdSleepMilliseconds(1500);
-  //usbStart(serusbcfg.usbp, &usbcfg);
-  //usbConnectBus(serusbcfg.usbp);
+  usbDisconnectBus(serusbcfg.usbp);
+  chThdSleepMilliseconds(1500);
+  usbStart(serusbcfg.usbp, &usbcfg);
+  usbConnectBus(serusbcfg.usbp);
 
   /*
    * Creates the blinker thread.
    */
-  //chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
-  chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO + 7, can_tx, NULL);
+  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+  chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO, can_tx, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
