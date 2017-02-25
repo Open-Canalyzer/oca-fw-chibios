@@ -19,8 +19,13 @@
 #include "hal.h"
 #include "usbcfg.h"
 #include "board.h"
+#include "leds.h"
+#include "chschd.h"
 
 #include "chprintf.h"
+
+#include <pb_encode.h>
+#include "protocols.pb.h"
 
 /*
  * 500KBaud, automatic wakeup, automatic recover
@@ -30,9 +35,10 @@
  * 500 000 = (36*10^6)/((1 + 5) * (3 + 5 + 4))
  */
 static const CANConfig cancfg = {
-	CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
-	CAN_BTR_SJW(0) | CAN_BTR_TS2(4) | CAN_BTR_TS1(5) | CAN_BTR_BRP(5)
+	CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,	
+	CAN_BTR_SJW(0) | CAN_BTR_TS2(4) | CAN_BTR_TS1(5) | CAN_BTR_BRP(5) | CAN_BTR_LBKM | CAN_BTR_SILM	//loopback and silent mode enabled
 };
+// The loopback and silent mode fully disconnect the CAN transceiver
 
 
 /*
@@ -42,18 +48,8 @@ static const CANConfig cancfg = {
 #define usb_lld_connect_bus(usbp)
 #define usb_lld_disconnect_bus(usbp)
 
-	static const uint8_t buf[] =
+static const uint8_t buf[] =
 			"Ping\n\r";
-
-static void led_toggle_blue(void)
-{
-	palTogglePad(GPIOB, GPIOB_LED_STAT);
-}
-
-static void led_toggle_green(void)
-{
-	palTogglePad(GPIOB, GPIOB_LED_ACT);
-}
 
 /*
  * Receiver thread.
@@ -71,12 +67,25 @@ static THD_FUNCTION(can_rx, p) {
       continue;
     while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
       /* Process message.*/
-      palTogglePad(GPIOB, GPIOB_LED_ERR);
+      oca_led_toggle(oca_led_act);
+
+      CanMessage UsbMessage = CanMessage_init_default;
+      UsbMessage.DLC = rxmsg.DLC;
+      UsbMessage.RTR = rxmsg.DLC;
+      UsbMessage.IDE = rxmsg.IDE;
+      UsbMessage.ID = rxmsg.EID;
+      UsbMessage.Data1 = rxmsg.data32[0];
+      UsbMessage.Data1 = rxmsg.data32[1];
+
+      uint8_t buffer[30];
+      pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+      pb_encode(&stream, CanMessage_fields, &UsbMessage);
+      
 
       if(serusbcfg.usbp->state == USB_ACTIVE)
       {
       	if(SDU1.state == SDU_READY)
-      		chprintf((BaseSequentialStream *)&SDU1, "Received CAN message: %x %x %x\n", rxmsg.EID, rxmsg.data32[0], rxmsg.data32[1]);
+      		chnWrite(&SDU1, buffer, stream.bytes_written);
       }
 
 
@@ -103,8 +112,11 @@ static THD_FUNCTION(can_tx, p) {
 
 	while (true) {
 		txmsg.data32[1] = chVTGetSystemTime();
-		canTransmit(&CAND1, CAN_ANY_MAILBOX, &txmsg, MS2ST(100));
-		led_toggle_blue();
+		msg_t ret = canTransmit(&CAND1, CAN_ANY_MAILBOX, &txmsg, MS2ST(100));
+		
+		if(ret == MSG_TIMEOUT || ret == MSG_RESET)
+			oca_led_toggle(oca_led_err);
+
 		chThdSleepMilliseconds(100);
 	}
 }
@@ -116,18 +128,10 @@ static THD_WORKING_AREA(waThread1, 128);
 static THD_FUNCTION(Thread1, arg) {
 
 	(void)arg;
-	systime_t time;
 	chRegSetThreadName("blinker");
 	while (true) {
-		time = serusbcfg.usbp->state == USB_ACTIVE ? 100 : 500;
-
-		/* Writing in buffer mode.*/
-		/*(void) obqGetEmptyBufferTimeout(&SDU1.obqueue, TIME_INFINITE);
-		memcpy(SDU1.obqueue.ptr, buf, sizeof(buf));
-		obqPostFullBuffer(&SDU1.obqueue, sizeof(buf));*/
-
-		led_toggle_green();
-		chThdSleepMilliseconds(time);
+		oca_led_update();
+		chThdSleepMilliseconds(250);
 	}
 }
 
@@ -163,6 +167,12 @@ int main(void) {
 	chThdSleepMilliseconds(1500);
 	usbStart(serusbcfg.usbp, &usbcfg);
 	usbConnectBus(serusbcfg.usbp);
+
+	oca_led_init();
+
+	//set_led(led_act, led_blink_250);
+	oca_led_set(oca_led_stat, oca_led_blink_500);
+	//set_led(led_err, led_blink_1000);
 
 	/*
 	 * Creates the blinker thread.

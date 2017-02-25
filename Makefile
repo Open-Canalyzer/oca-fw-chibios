@@ -111,7 +111,12 @@ CSRC = $(STARTUPSRC) \
        src/main.c \
        src/usbcfg.c \
        $(CHIBIOS)/os/hal/lib/streams/chprintf.c \
-       src/board.c
+       src/board.c \
+       src/leds.c \
+       proto/nanopb/pb_common.c \
+       proto/nanopb/pb_decode.c \
+       proto/nanopb/pb_encode.c \
+       proto/protocols.pb.c \
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -144,7 +149,9 @@ ASMXSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 INCDIR = $(CHIBIOS)/os/license \
          $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
          $(HALINC) $(PLATFORMINC) include \
-         $(CHIBIOS)/os/various $(CHIBIOS)/os/hal/lib/streams
+         $(CHIBIOS)/os/various $(CHIBIOS)/os/hal/lib/streams \
+         proto/ \
+         proto/nanopb
 
 #
 # Project, sources and paths
