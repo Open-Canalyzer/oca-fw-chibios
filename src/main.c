@@ -40,6 +40,22 @@ static const CANConfig cancfg = {
 };
 // The loopback and silent mode fully disconnect the CAN transceiver
 
+// Print a given string to ITM.
+// This uses 8 bit writes, as that seems to be the most common way to write text
+// through ITM. Otherwise there is no good way for the PC software to know what
+// is text and what is some other data.
+void ITM_Print(int port, const char *p)
+{
+    if ((ITM->TCR & ITM_TCR_ITMENA_Msk) && (ITM->TER & (1UL << port)))
+    {
+        while (*p)
+        {
+            while (ITM->PORT[port].u32 == 0);
+            ITM->PORT[port].u8 = *p++;
+        }
+    }
+}
+
 
 /*
  * DP resistor control is not possible on the STM32F3-Discovery, using stubs
@@ -149,6 +165,24 @@ int main(void) {
 	 */
 	halInit();
 	chSysInit();
+/*
+	DBGMCU->CR |= DBGMCU_CR_TRACE_IOEN; // Enable IO trace pins
+
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Enable access to registers
+    TPI->ACPR = 0; // Trace clock = HCLK/(x+1) = 8MHz
+    TPI->SPPR = 2; // Pin protocol = NRZ/USART
+    TPI->FFCR = 0x100; // TPIU packet framing enabled when bit 2 is set.
+                       // You can use 0x100 if you only need DWT/ITM and not ETM.
+
+    ITM->LAR = 0xC5ACCE55;
+    ITM->TCR = (1 << ITM_TCR_TraceBusID_Pos) // Trace bus ID for TPIU
+             | (1 << ITM_TCR_SYNCENA_Pos) // Enable sync packets
+             | (1 << ITM_TCR_ITMENA_Pos); // Main enable for ITM
+    ITM->TER = 0xFFFFFFFF; // Enable all stimulus ports
+	//ITM->TPR = 0x0000000F; // unpriviledged
+*/
+	while (true)
+		ITM_Print(0, "UUUU\n");
 
 	/*
 	 * Initializes a serial-over-USB CDC driver.
