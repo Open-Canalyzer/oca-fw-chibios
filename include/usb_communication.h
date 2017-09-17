@@ -12,6 +12,6 @@ struct oca_usb_data_frame
 
 void oca_usb_init(void);
 
-
+void oca_usb_queue_data_frame(oca_usb_data_frame* frame);
 
 #endif /* USB_COMMUNICATION_H */

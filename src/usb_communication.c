@@ -9,6 +9,7 @@
 
 static THD_WORKING_AREA(usb_com_wa, 256);
 static THD_FUNCTION(usb_rx_thd, arg);
+static THD_FUNCTION(usb_tx_thd, arg);
 
 static const uint8_t Start1Value = 0x55;
 static const uint8_t Start2Value = 0xDA;
@@ -21,6 +22,7 @@ oca_usb_data_frame* oca_usb_decode_stream(ring_buffer_t* ring_buf);
 oca_usb_data_frame* oca_usb_get_data_frame(void);
 
 ring_buffer_t ring_buffer_rx;
+ring_buffer_t ring_buffer_tx;
 /*
  * DP resistor control is not possible on the STM32F3-Discovery, using stubs
  * for the connection macros.
@@ -31,6 +33,7 @@ ring_buffer_t ring_buffer_rx;
 void oca_usb_init(void)
 {
 	ring_buffer_init(&ring_buffer_rx);
+	ring_buffer_init(&ring_buffer_tx);
 
 	/*
 	 * Initializes a serial-over-USB CDC driver.
@@ -49,8 +52,17 @@ void oca_usb_init(void)
 	usbConnectBus(serusbcfg.usbp);
 
 	chThdCreateStatic(usb_com_wa, sizeof(usb_com_wa), NORMALPRIO, usb_rx_thd, NULL);
+	chThdCreateStatic(usb_com_wa, sizeof(usb_com_wa), NORMALPRIO, usb_tx_thd, NULL);
 }
 
+void oca_usb_queue_data_frame(oca_usb_data_frame* frame)
+{
+	// if the buffer overflows there is probably something wrong with comms
+	if(ring_buffer_is_full(&ring_buffer_tx))
+		ring_buffer_init(&ring_buffer_tx);
+
+		ring_buffer_queue_arr(&ring_buffer_tx, frame->data, frame->dataSize);
+}
 
 static THD_FUNCTION(usb_rx_thd, arg)
 {
@@ -68,7 +80,31 @@ static THD_FUNCTION(usb_rx_thd, arg)
 	}
 }
 
+static THD_FUNCTION(usb_tx_thd, arg)
+{
+	(void)arg;
+	chRegSetThreadName("usb_tx_thd");
+	char sendBufferData[RING_BUFFER_SIZE];
 
+	while (true) {
+		if(serusbcfg.usbp->state == USB_ACTIVE)
+		{
+			if(SDU1.state == SDU_READY)
+			{
+				uint8_t len = ring_buffer_num_items(&ring_buffer_tx);
+				if(len > 0)
+				{
+					ring_buffer_dequeue_arr(&ring_buffer_tx, sendBufferData, len);
+					chnWrite(&SDU1, (uint8_t*)sendBufferData, len);
+				}
+			}
+		}
+		else
+		{
+			chThdSleepMilliseconds(100);	//When not connected poll every 100ms
+		}
+	}
+}
 
 oca_usb_data_frame* oca_usb_decode_stream(ring_buffer_t* ring_buf)
 {
