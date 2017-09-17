@@ -61,6 +61,9 @@ void oca_usb_queue_data_frame(oca_usb_data_frame* frame)
 	if(ring_buffer_is_full(&ring_buffer_tx))
 		ring_buffer_init(&ring_buffer_tx);
 
+		ring_buffer_queue(&ring_buffer_tx, Start1Value);
+		ring_buffer_queue(&ring_buffer_tx, Start2Value);
+		ring_buffer_queue(&ring_buffer_tx, frame->dataSize);
 		ring_buffer_queue_arr(&ring_buffer_tx, frame->data, frame->dataSize);
 }
 
