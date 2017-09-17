@@ -18,6 +18,9 @@ static const uint8_t Start2Value = 0xDA;
 #define DATA_FRAME_BUFFER_SIZE 5
 oca_usb_data_frame data_frame_buffer[DATA_FRAME_BUFFER_SIZE];
 
+static msg_t rx_data_frame_mailbox_queue[DATA_FRAME_BUFFER_SIZE];
+static mailbox_t rx_data_frame_mailbox;
+
 oca_usb_data_frame* oca_usb_decode_stream(ring_buffer_t* ring_buf);
 oca_usb_data_frame* oca_usb_get_data_frame(void);
 
@@ -35,6 +38,7 @@ void oca_usb_init(void)
 	ring_buffer_init(&ring_buffer_rx);
 	ring_buffer_init(&ring_buffer_tx);
 
+	chMBObjectInit(&rx_data_frame_mailbox, rx_data_frame_mailbox_queue, DATA_FRAME_BUFFER_SIZE);
 	/*
 	 * Initializes a serial-over-USB CDC driver.
 	 */
@@ -76,9 +80,9 @@ static THD_FUNCTION(usb_rx_thd, arg)
 		ring_buffer_queue(&ring_buffer_rx, readVal);
 
 		oca_usb_data_frame* frame = oca_usb_decode_stream(&ring_buffer_rx);
-		if(frame != NULL) // Valid frame came in. Maybe use a mailbox to push it out
-		{                 // So another thread can execute the request
-
+		if(frame != NULL)
+		{                 
+			chMBPost(&rx_data_frame_mailbox, (msg_t)frame, MS2ST(100));
 		}
 	}
 }
