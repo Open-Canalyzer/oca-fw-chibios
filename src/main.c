@@ -75,11 +75,11 @@ static THD_FUNCTION(can_rx, p) {
       pb_encode(&stream, CanMessage_fields, &UsbMessage);
       
 
-      if(serusbcfg.usbp->state == USB_ACTIVE)
+      /*if(serusbcfg.usbp->state == USB_ACTIVE)
       {
       	if(SDU1.state == SDU_READY)
       		chnWrite(&SDU1, buffer, stream.bytes_written);
-      }
+      }*/
 
 
     }
@@ -143,11 +143,11 @@ int main(void) {
 	halInit();
 	chSysInit();
 
+	oca_led_init();
+
 	oca_usb_init();
 
 	canStart(&CAND1, &cancfg);
-
-	oca_led_init();
 
 	//set_led(led_act, led_blink_250);
 	oca_led_set(oca_led_stat, oca_led_blink_500);

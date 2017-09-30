@@ -6,8 +6,10 @@
 #include "usbcfg.h"
 #include "board.h"
 #include "ringbuffer.h"
+#include "leds.h"
 
-static THD_WORKING_AREA(usb_com_wa, 256);
+static THD_WORKING_AREA(usb_com_rx_wa, 256);
+static THD_WORKING_AREA(usb_com_tx_wa, 256);
 static THD_FUNCTION(usb_rx_thd, arg);
 static THD_FUNCTION(usb_tx_thd, arg);
 
@@ -55,8 +57,8 @@ void oca_usb_init(void)
 	usbStart(serusbcfg.usbp, &usbcfg);
 	usbConnectBus(serusbcfg.usbp);
 
-	chThdCreateStatic(usb_com_wa, sizeof(usb_com_wa), NORMALPRIO, usb_rx_thd, NULL);
-	chThdCreateStatic(usb_com_wa, sizeof(usb_com_wa), NORMALPRIO, usb_tx_thd, NULL);
+	chThdCreateStatic(usb_com_rx_wa, sizeof(usb_com_rx_wa), NORMALPRIO, usb_rx_thd, NULL);
+	chThdCreateStatic(usb_com_tx_wa, sizeof(usb_com_tx_wa), NORMALPRIO, usb_tx_thd, NULL);
 }
 
 void oca_usb_queue_data_frame(oca_usb_data_frame* frame)
@@ -76,13 +78,29 @@ static THD_FUNCTION(usb_rx_thd, arg)
 	(void)arg;
 	chRegSetThreadName("usb_rx_thd");
 	while (true) {
-		char readVal = streamGet(&SDU1);
-		ring_buffer_queue(&ring_buffer_rx, readVal);
+		if(serusbcfg.usbp->state == USB_ACTIVE)
+		{
+			if(SDU1.state == SDU_READY)
+			{
+				uint8_t readVal;
 
-		oca_usb_data_frame* frame = oca_usb_decode_stream(&ring_buffer_rx);
-		if(frame != NULL)
-		{                 
-			chMBPost(&rx_data_frame_mailbox, (msg_t)frame, MS2ST(100));
+				if(chnRead(&SDU1, &readVal, 1) > 0)
+				{
+					ring_buffer_queue(&ring_buffer_rx, readVal);
+			
+					oca_usb_data_frame* frame = oca_usb_decode_stream(&ring_buffer_rx);
+					if(frame != NULL)
+					{                 
+						chMBPost(&rx_data_frame_mailbox, (msg_t)frame, MS2ST(100));
+						oca_usb_queue_data_frame(frame);	//echo back the frame as a test
+						oca_led_toggle(oca_led_act);
+					}
+				}
+			}
+		}
+		else
+		{
+			chThdSleepMilliseconds(100);	//When not connected poll every 100ms
 		}
 	}
 }
@@ -104,6 +122,7 @@ static THD_FUNCTION(usb_tx_thd, arg)
 					ring_buffer_dequeue_arr(&ring_buffer_tx, sendBufferData, len);
 					chnWrite(&SDU1, (uint8_t*)sendBufferData, len);
 				}
+				chThdSleepMilliseconds(100);
 			}
 		}
 		else
