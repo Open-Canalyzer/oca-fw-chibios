@@ -113,6 +113,8 @@ CSRC = $(STARTUPSRC) \
        $(CHIBIOS)/os/hal/lib/streams/chprintf.c \
        src/board.c \
        src/leds.c \
+       src/usb_communication.c \
+       src/ringbuffer.c \
        proto/nanopb/pb_common.c \
        proto/nanopb/pb_decode.c \
        proto/nanopb/pb_encode.c \

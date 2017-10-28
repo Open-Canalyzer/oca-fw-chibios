@@ -20,6 +20,7 @@
 #include "usbcfg.h"
 #include "board.h"
 #include "leds.h"
+#include "usb_communication.h"
 #include "chschd.h"
 
 #include "chprintf.h"
@@ -39,14 +40,6 @@ static const CANConfig cancfg = {
 	CAN_BTR_SJW(0) | CAN_BTR_TS2(4) | CAN_BTR_TS1(5) | CAN_BTR_BRP(5) | CAN_BTR_LBKM | CAN_BTR_SILM	//loopback and silent mode enabled
 };
 // The loopback and silent mode fully disconnect the CAN transceiver
-
-
-/*
- * DP resistor control is not possible on the STM32F3-Discovery, using stubs
- * for the connection macros.
- */
-#define usb_lld_connect_bus(usbp)
-#define usb_lld_disconnect_bus(usbp)
 
 static const uint8_t buf[] =
 			"Ping\n\r";
@@ -82,11 +75,11 @@ static THD_FUNCTION(can_rx, p) {
       pb_encode(&stream, CanMessage_fields, &UsbMessage);
       
 
-      if(serusbcfg.usbp->state == USB_ACTIVE)
+      /*if(serusbcfg.usbp->state == USB_ACTIVE)
       {
       	if(SDU1.state == SDU_READY)
       		chnWrite(&SDU1, buffer, stream.bytes_written);
-      }
+      }*/
 
 
     }
@@ -150,25 +143,11 @@ int main(void) {
 	halInit();
 	chSysInit();
 
-	/*
-	 * Initializes a serial-over-USB CDC driver.
-	 */
-	sduObjectInit(&SDU1);
-	sduStart(&SDU1, &serusbcfg);
+	oca_led_init();
+
+	oca_usb_init();
 
 	canStart(&CAND1, &cancfg);
-
-	/*
-	 * Activates the USB driver and then the USB bus pull-up on D+.
-	 * Note, a delay is inserted in order to not have to disconnect the cable
-	 * after a reset.
-	 */
-	usbDisconnectBus(serusbcfg.usbp);
-	chThdSleepMilliseconds(1500);
-	usbStart(serusbcfg.usbp, &usbcfg);
-	usbConnectBus(serusbcfg.usbp);
-
-	oca_led_init();
 
 	//set_led(led_act, led_blink_250);
 	oca_led_set(oca_led_stat, oca_led_blink_500);

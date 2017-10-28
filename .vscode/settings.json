@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "usbcfg.h": "c",
+    "hal.h": "c",
+    "hal_streams.h": "c"
+  }
+}
